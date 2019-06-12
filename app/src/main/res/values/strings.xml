@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Puls Estimation</string>
+
+    <string name="connect">Connect</string>
+    <string name="disconnect">Disconnect</string>
+    <string name="chooseDev">Choose Device</string>
+
+
+</resources>
