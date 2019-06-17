@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/linearlayout_connection"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal"
+        android:paddingStart="20dp"
+        >
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="end"
+            android:orientation="horizontal">
+
+            <Switch
+                android:id="@+id/switchConnection"
+                style="@style/SwitchTheme"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:switchTextAppearance="@style/SwitchTheme"
+                android:text="Sensor Connection"
+                android:textColor="@color/white"
+                android:textIsSelectable="false"
+                android:theme="@style/SwitchTheme" />
+
+        </LinearLayout>
+        <FrameLayout
+            android:id="@+id/framelayout_status"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:padding="5dp">
+
+            <ProgressBar
+                android:id="@+id/progressbar_waiting"
+                style="?android:attr/progressBarStyleLarge"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone" />
+        </FrameLayout>
+
+
+
+    </LinearLayout>
+
+</RelativeLayout>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+
+        android:id="@+id/MenuEntryReset"
+        android:title="Reset"
+        app:actionLayout="@layout/action_layout_reset"
+        app:showAsAction="always">
+    </item>
+
+    <item
+        android:id="@+id/MenuEntryConnect"
+        android:title="Sensor Connection"
+        app:actionLayout="@layout/action_layout_connect"
+        app:showAsAction="always">
+    </item>
+
+
+
+</menu>
