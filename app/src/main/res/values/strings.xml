@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Puls Estimation</string>
+    <string name="app_name">Pulse Estimation</string>
 
     <string name="connect">Connect</string>
     <string name="disconnect">Disconnect</string>

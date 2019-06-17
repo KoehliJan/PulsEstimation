@@ -24,12 +24,15 @@ public class Jama_Filter {
 	//Matrix X_filterd;
 	Jama_Filter(double[][] Num, int l_sig, int n_sig) {
 
+	    /* Set numerator */
 		Num_Mat = new Jama.Matrix(Num);
 		length_num = Num_Mat.getColumnDimension();
 
+		/* Set dimensions */
         length_sig = l_sig;
         number_sig = n_sig;
 
+        /* Define Matrices */
         X_filterd = new Jama.Matrix(l_sig,n_sig);
         ZX = new Jama.Matrix((l_sig+length_num),n_sig);
         z = new Jama.Matrix(length_num,number_sig);
@@ -41,20 +44,19 @@ public class Jama_Filter {
 	    /* Check Dimensions */
         if ( X.getRowDimension() == length_sig && X.getColumnDimension() == number_sig){
 
-
-            //Arbeitsmatrix erstellen mit Initialisierungswerten und neuen Wertenr
+            /* Join initial values */
             ZX.setMatrix(0, (length_num-1), 0, number_sig-1, z);
             ZX.setMatrix(length_num, (length_num+length_sig-1), 0, number_sig-1, X);
 
-            /* Filter Signal*/
+            /* Filter Signal */
             for (int k = 0; k <= (length_sig-1); k++) {
                 X_filterd.setMatrix(k,k, 0, number_sig-1,(Num_Mat.times(ZX.getMatrix(1+k, length_num+k, 0, number_sig-1))));
             }
 
-            // Uebergabeparameter abspeichgern
+            /* Store initial values for next segment */
             z.setMatrix(0, length_num-1, 0, number_sig-1, X.getMatrix(length_sig-1-(length_num-1), length_sig-1, 0, number_sig-1));
 
-            /* Return Result */
+            /* Return result */
             return X_filterd;
 
         }else{
@@ -63,7 +65,6 @@ public class Jama_Filter {
         }
 
     }
-
 
 	public Jama.Matrix getNum(){
 		return Num_Mat;

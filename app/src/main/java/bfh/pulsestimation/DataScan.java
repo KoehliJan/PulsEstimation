@@ -1,17 +1,12 @@
 package bfh.pulsestimation;
 
 
-import android.app.Activity;
 import android.content.DialogInterface;
-import android.graphics.Color;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.view.View.OnClickListener;
-import android.widget.CompoundButton;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Switch;
 import android.widget.Toast;
@@ -33,10 +28,7 @@ import com.mcc.ul.Range;
 import com.mcc.ul.ULException;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.EnumSet;
-import java.util.Timer;
-import java.util.TimerTask;
 
 
 /**
@@ -45,21 +37,21 @@ import java.util.TimerTask;
 
 public class DataScan {
 
-    private static int BUFFERSIZE = (int) (2.5 * 256);
-    private static int EVENTSIZE = 10;
-    private static double RATE = 256;
-    private final static int SAMPLE_PER_CHAN = 2 * (BUFFERSIZE + EVENTSIZE);
+    private  int segmentSize;
+    private  int eventSize = 10;
+    private  double sampleRate;
+    private  int scanBufferSize;
 
     private double[][] mScanData;
     private Jama.Matrix mSliceData;
-    private int neededSampleCount = BUFFERSIZE;
+    private int neededSampleCount;
 
     private static String LOGTAG = "DataScan";
 
 
+    StatusViewer statusViewer;
     Switch sConnection;
 
-    StatusViewer statusViewer;
 
     private MainActivity activity;
 
@@ -73,27 +65,25 @@ public class DataScan {
     Algorithmus algorithmus;
 
 
-    DataScan(MainActivity a,Algorithmus algo){
+    DataScan(MainActivity a,  Algorithmus algo, int l_segment, double fa){
 
+        /* Main activity reference */
         activity = a;
-
         algorithmus = algo;
 
-        init();
+        /* Set parameters */
+        segmentSize = l_segment;
+        scanBufferSize = 2 * (segmentSize + eventSize);
+        sampleRate = fa;
 
+        /* Create Daq Device Manager */
+        mDaqDeviceManager = new DaqDeviceManager(activity);
 
     }
 
+    public void setInteraction(Switch sConnect, ProgressBar pBW){
 
-
-    private void connect(){
-        detectDaqDevices();
-    }
-
-
-    private void init(){
-
-        sConnection = (Switch) activity.findViewById(R.id.switchConnection);
+        this.sConnection = sConnect;
         sConnection.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -106,20 +96,25 @@ public class DataScan {
             }
         });
 
-        statusViewer = new StatusViewer();
-
-
-        mDaqDeviceManager = new DaqDeviceManager(activity);
+        statusViewer = new StatusViewer(pBW);
+    }
 
 
 
-    };
+    private void connect(){
+
+        detectDaqDevices();
+
+    }
+
+
+
 
     private void detectDaqDevices() {
 
         Log.v(LOGTAG,"Detect");
 
-        // Find available DAQ devices
+        /* Find available DAQ devices */
         final ArrayList<DaqDeviceDescriptor> daqDevInventory = mDaqDeviceManager.getDaqDeviceInventory();
 
         Log.v(LOGTAG,"Show Devices");
@@ -128,14 +123,14 @@ public class DataScan {
         if(daqDevInventory.size() > 0){
 
             Log.v(LOGTAG,"Get Detected Devices");
-            // Get the Names from Detected Devices
+            /* Get the Names from Detected Devices */
             String DevNames[] = new String[daqDevInventory.size()];
             for (int i = 0; i < daqDevInventory.size(); i++){
                 DevNames[i] = daqDevInventory.get(i).devString;
             }
 
-            Log.v(LOGTAG,"create Dialog");
-            // Create Dialog to choose Device
+
+            /* Create Dialog to choose Device */
             AlertDialog.Builder builder = new AlertDialog.Builder(activity);
             builder.setTitle(R.string.chooseDev)
                     .setOnCancelListener(new DialogInterface.OnCancelListener() {
@@ -170,41 +165,41 @@ public class DataScan {
                         }
                     });
 
-
-
+            /* Create and show Alert Dialog */
             builder.create().show();
 
         }else {
-            // No devices detected
+            /* No devices detected */
             statusViewer.message("No Devices detected");
             statusViewer.setStatus(mDaqDevice.isConnected());
         }
-
     }
 
     private void connectDaqDevice(){
 
-        Log.v(LOGTAG,mDaqDevice.toString());
+        Log.v(LOGTAG,"Connecting to " + mDaqDevice.toString());
 
+        /* Get Device Info */
         DaqDeviceInfo devInfo = mDaqDevice.getInfo();
 
-        // Check if this DAQ Device has 3 analog input channels (subsystem)
+        /* Check if this DAQ Device has an Analog Input subsystem */
         if(devInfo.hasAiDev()) {
             AiInfo aiInfo = mDaqDevice.getAiDev().getInfo();
 
+            /* Check if the analog input subsystem has 3 analog input channels */
             int NumChannels = aiInfo.getTotalNumChans();
             if (NumChannels < 3) {
-                statusViewer.message("Selected device has only "+NumChannels+" analog input Channels");
+                statusViewer.message("3 channels recommended. Selected device has only "+NumChannels+" analog input Channels. ");
                 statusViewer.setStatus(mDaqDevice.isConnected());
             }else {
 
-                // Check if this device has connection permission
+                /* Check if this device has connection permission */
                 if(mDaqDevice.hasConnectionPermission()) {
-                    // This device already has connection permission. try to connect to it
+                    /* This device already has connection permission. Calling onDaqDevicePermission with true (permission granted) */
                     mDeviceConnectionPermissionListener.onDaqDevicePermission(mDaqDevice.getDescriptor(), true);
                 }
                 else {
-                    //Request permission for connecting to the selected device
+                    /* Request permission for connecting to the selected device. onDaqDevicePermission() will be called if permission granted or not */
                     try {
                         mDaqDevice.requestConnectionPermission(mDeviceConnectionPermissionListener);
                     } catch (ULException e) {
@@ -214,7 +209,7 @@ public class DataScan {
                 }
             }
         }else {
-            statusViewer.message("Selected device does not support analog input");
+            statusViewer.message("Selected device does not support analog input.");
             statusViewer.setStatus(mDaqDevice.isConnected());
         }
     }
@@ -222,9 +217,9 @@ public class DataScan {
 
     public DaqDeviceConnectionPermissionListener mDeviceConnectionPermissionListener = new DaqDeviceConnectionPermissionListener() {
         public void onDaqDevicePermission(DaqDeviceDescriptor daqDeviceDescriptor, boolean permissionGranted) {
-            if(permissionGranted) {
 
-                // Try to connect on different Thread
+            if(permissionGranted) {
+                /* permission granted to establish connection */
                 new Thread(new Runnable() {
                     public void run(){
                         try {
@@ -238,9 +233,15 @@ public class DataScan {
                         statusViewer.setStatus(mDaqDevice.isConnected());
 
                         if(mDaqDevice.isConnected()){
-                            startScan();
-                        }
 
+
+                            /* Connection successful, prepare and start scan */
+                            prepareScan();
+                            startScan();
+
+                            /* Start Updating Ecg Plot */
+                            activity.getEcgPlotter().run();
+                        }
                     }
                 }).start();
 
@@ -255,47 +256,52 @@ public class DataScan {
     };
 
 
+    private void prepareScan(){
+        /* Create Enum Set of Events which should be bind to the Event Listener*/
+        EnumSet<DaqEventType> eventTypes =  EnumSet.of(DaqEventType.ON_DATA_AVAILABLE, DaqEventType.ON_END_OF_INPUT_SCAN, DaqEventType.ON_INPUT_SCAN_ERROR);
+        /* Bind Events to Daq Event Listener */
+        try {
+            mDaqDevice.enableEvent(eventTypes, eventSize, mDaqEventListener);
+        } catch (ULException e) {
+            e.printStackTrace();
+            statusViewer.message("Error: "+ e.toString());
+        }
+
+    }
+
+
     private void startScan(){
 
         if (mDaqDevice.isConnected()){
 
-            int lowChan = 0;
-            int highChan = 2;
-
+            /* Set Channel */
             AiChanMode mode = AiChanMode.DIFFERENTIAL;
             Range range = Range.BIP5VOLTS;
 
-            double rate = RATE;
+            /* Set sample rate */
+            double rate = sampleRate;
 
+            /* Define scan options. Continuous Scan*/
             EnumSet<AiScanOption> options = EnumSet.of(AiScanOption.DEFAULTIO, AiScanOption.CONTINUOUS);
 
+            /* Define unit volts */
             AiUnit mUnit = AiUnit.VOLTS;
 
-            int mChanCount = highChan >= lowChan ? highChan - lowChan + 1 : 1;
-            mScanData = new double[mChanCount][SAMPLE_PER_CHAN];
-            mSliceData = new Jama.Matrix(BUFFERSIZE,mChanCount);
+            /* Define number of channels */
+            int mChanCount = 3;
+
+            /* Initialize data buffers */
+            mScanData = new double[mChanCount][scanBufferSize];
+            mSliceData = new Jama.Matrix(segmentSize,mChanCount);
 
             mAiDevice = mDaqDevice.getAiDev();
 
-            // Event types to enable
-            EnumSet<DaqEventType> eventTypes =  EnumSet.of(DaqEventType.ON_DATA_AVAILABLE, DaqEventType.ON_END_OF_INPUT_SCAN, DaqEventType.ON_INPUT_SCAN_ERROR);
+            neededSampleCount = segmentSize;
 
-            neededSampleCount = BUFFERSIZE;
-
-            // Bind Events to Daq Event Listener (this)
             try {
-                mDaqDevice.enableEvent(eventTypes, EVENTSIZE, mDaqEventListener);
 
-                /* Reset Ecg Plot */
-                activity.getEcgPlotter().reset();
-
-
-                /* Start Updating Ecg Plot*/
-                activity.getEcgPlotter().run();
-
-                @SuppressWarnings("unused")
-                //Collect the values by calling the aInScan function
-               double actualScanRate = mAiDevice.aInScan(lowChan, highChan, mode, range, SAMPLE_PER_CHAN, rate, options, mUnit, mScanData);
+                /* Start collecting data */
+                double actualScanRate = mAiDevice.aInScan(0, 2, mode, range, scanBufferSize, rate, options, mUnit, mScanData);
                 Log.v(LOGTAG," Start Scan with Scan rate: "+ actualScanRate);
 
             } catch (final ULException e) {
@@ -313,6 +319,7 @@ public class DataScan {
     void stopAInScan() {
         try {
             if(mAiDevice != null)
+                /* Stop collecting data */
                 mAiDevice.stopBackground();
         } catch (ULException e) {
             e.printStackTrace();
@@ -322,9 +329,14 @@ public class DataScan {
 
     private void disconnectDaqDevice(){
         Log.v(LOGTAG,"Disconnect");
+
+        /* Disconnect from device */
         mDaqDevice.disconnect();
         statusViewer.setStatus(mDaqDevice.isConnected());
+
+        /* Stop updating plot */
         activity.getEcgPlotter().stop();
+
     }
 
     public void shutDown(){
@@ -336,7 +348,7 @@ public class DataScan {
 
     }
 
-
+    /* DAQ Event Listener. Gets fired on data available, on end of input scan and on input scan error. */
     public DaqEventListener mDaqEventListener = new DaqEventListener(){
 
         @Override
@@ -347,25 +359,35 @@ public class DataScan {
             switch(daqEventType) {
                 case ON_DATA_AVAILABLE:
 
+                    /* If enough samples collected */
                     if (currentSampleCount > neededSampleCount){
-                        //Log.v(LOGTAG, daqDevice.toString() +": "+ daqEventType.toString() +" Current Sample Count: "+ currentSampleCount + " | " + neededSampleCount);
 
+                        /* Read from scan buffer and copy into slice buffer */
                         setSliceData();
+
+                        /* Start the signal processing */
                         algorithmus.processOnAlgoThread(mSliceData);
-                        Log.v(LOGTAG,"DataScan sended Data at Time: " + System.currentTimeMillis() +" ms");
                     }
 
                     break;
+
                 case ON_END_OF_INPUT_SCAN:
                     Log.v(LOGTAG, daqDevice.toString() +": "+ daqEventType.toString());
+
+                    /* Shouldn't be fired in continuous mode*/
+
+                    /* Stop scan and disconnect device. */
                     stopAInScan();
                     disconnectDaqDevice();
 
 
                     break;
                 case ON_INPUT_SCAN_ERROR:
-                    Log.v(LOGTAG, "Connected: " + mDaqDevice.isConnected());
+
+                    /* Log the error */
                     Log.e(LOGTAG, daqDevice.toString() +": "+ errorInfo.toString());
+
+                    /* Stop and disconnect device */
                     stopAInScan();
                     disconnectDaqDevice();
 
@@ -378,42 +400,32 @@ public class DataScan {
     };
 
     private void setSliceData(){
-        int iStartOfSlice = neededSampleCount - BUFFERSIZE;
+
+        int iStartOfSlice = neededSampleCount - segmentSize;
         int idx;
 
-        //Log.v(LOGTAG,"iStartOfSlice: " + iStartOfSlice);
+        Log.v(LOGTAG,""+iStartOfSlice);
 
         /* Copy and transpose the Slice out of the ScanData*/
         for(int ch = 0 ; ch < mSliceData.getColumnDimension(); ch++  ){
             for (int i = 0; i < mSliceData.getRowDimension(); i++){
 
-                idx = (iStartOfSlice + i) % SAMPLE_PER_CHAN;
+                idx = (iStartOfSlice + i) % scanBufferSize;
                 mSliceData.set(i,ch,mScanData[ch][idx]);
-                // Log Channel One
-                //if (ch == 0){
-                //    Log.v(LOGTAG,"" + idx + " = " + " ( " + iStartOfSlice + " + " + i + " ) " + " % " + SAMPLE_PER_CHAN);
-                //}
             }
         }
-        // Log Channel One
-        //Log.v(LOGTAG,"Scan");
-        //Log.v(LOGTAG,Arrays.toString(mScanData[0]));
 
-        //Log.v(LOGTAG,"Slice");
-        //Log.v(LOGTAG,Arrays.toString(mSliceData[0]));
-
-        neededSampleCount = neededSampleCount + BUFFERSIZE;
+        /* Increment needed sample count with segment size. */
+        neededSampleCount = neededSampleCount + segmentSize;
     }
 
 
     private class StatusViewer{
 
         private ProgressBar pbWaiting;
-        private LinearLayout llConnection;
 
-        StatusViewer(){
-            pbWaiting = (ProgressBar) activity.findViewById(R.id.progressbar_waiting);
-            llConnection = (LinearLayout) activity.findViewById(R.id.linearlayout_connection);
+        StatusViewer(ProgressBar pbW){
+            pbWaiting = pbW;
         }
 
         public void setStatus(final boolean connected){
@@ -453,6 +465,7 @@ public class DataScan {
     }
 
     public int getCurrentSampleCount(){
+        /**/
         try {
             if (mAiDevice != null){
                 return mAiDevice.getStatus().currentCount;
@@ -465,6 +478,17 @@ public class DataScan {
             Log.e(LOGTAG,e.toString());
             return -1;
         }
+    }
+
+
+    public void reset(){
+
+        /* Restart Scan */
+        stopAInScan();
+        if (mDaqDevice != null){
+            startScan();
+        }
+
     }
 
 

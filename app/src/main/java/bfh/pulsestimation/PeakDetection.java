@@ -5,7 +5,7 @@ import android.app.Activity;
 import Jama.Matrix;
 
 
-public class PeakDetecter {
+public class PeakDetection {
 
 	MainActivity activity;
 	Jama_Filter DD;
@@ -27,7 +27,7 @@ public class PeakDetecter {
 	Matrix QRS_Peaks_Alt;
 	Matrix R_Peaks_Sort;			
 	
-	PeakDetecter(MainActivity a, int l_sig, int samp_f) {
+	PeakDetection(MainActivity a, int l_sig, int samp_f) {
 
 		fa = samp_f;										// Samplingfrequenz zum berechnen des Zeitstempels
 		AnzPeaks = -1;
@@ -49,11 +49,9 @@ public class PeakDetecter {
 		
 	}
 
-	public void process(Segment segment) {
+	public void process(Matrix x) {
 
 		boolean search = true;
-
-		Matrix x = segment.getChannel(0);
 
 		// Double derivation
 		Seg_DD = DD.filter(x);
@@ -173,7 +171,7 @@ public class PeakDetecter {
 		
 		R_Peaks_Sort= sort(R_Peaks_New,1,i);			// Sortieren nach der Zeitlichen Reienfolge
 		AnzPeaks=i;										// Anzahl neu detectierter Peaks abspeichern
-		QRS_Peaks_Alt=QRS_Peaks_New.copy();				// Peaks ans n�chste Segment weitergeben
+		QRS_Peaks_Alt = QRS_Peaks_New.copy();				// Peaks ans n�chste Segment weitergeben
 		
 		
 		}
@@ -244,4 +242,17 @@ public class PeakDetecter {
 	}
 
 
+	public void reset(){
+
+		AnzPeaks = -1;
+		init = 7;
+
+		OVERLAP_EKG = new Matrix(grs_window_length,1);
+		OVERLAP_DD_SQ = new Matrix(grs_window_length,1);
+
+		QRS_Peaks_Alt = new Matrix(10,2);
+
+		QRS_Peaks_Tresh = new double[QRS_Peaks_Tresh.length];
+
+	}
 }

@@ -6,6 +6,8 @@ import Jama.Matrix;
 public class PCAnalyser{
 
 
+	private int segmentCounter = 0;
+
 	private Jama.Matrix EigenVec;
 	private Jama.Matrix CoeffReduced;
 	private Jama.Matrix Score;
@@ -24,13 +26,19 @@ public class PCAnalyser{
 
 	public Jama.Matrix PCA_Reduction(Jama.Matrix X){
 
-		calcKovarianceMatrix(X);									// Kovarianze Matrix berechnen
-		Eig = Cov.eig();											// Eigenwerte und Eigenvektoren berechnen
-		Numb_PC(Alpha);
-		dimReduction(nbr_pc);										// Reduzieren der Hauptkomponente auf nbr_pc
-		Score=X.times(CoeffReduced);								// Projezieren der Matrix auf die Hauptkomponente
-		X_Reduced=Score.times(CoeffReduced.transpose());			// R�cktransformation auf die Matrix
+		if (segmentCounter < 4){
+			/* Calculate Coeffs */
+			calcKovarianceMatrix(X);
+			Eig = Cov.eig();
+			calc_numberPC();
+			dimReduction(nbr_pc);
+		}
 
+		/* Reduce the datamatrix  */
+		Score=X.times(CoeffReduced);
+		X_Reduced=Score.times(CoeffReduced.transpose());
+
+		segmentCounter++;
 		return X_Reduced;
 	}
 	
@@ -47,7 +55,9 @@ public class PCAnalyser{
 		int column=EigenVec.getColumnDimension();
 		CoeffReduced=EigenVec.getMatrix(0,(column-1),(row-nbr_pc),(row-1));	
 	}
-	/*In Numb_PC wird die minimale Anzahl Komponente berechnet mit welchen eine Gesamtstreunung
+
+
+	/*In calc_numberPC wird die minimale Anzahl Komponente berechnet mit welchen eine Gesamtstreunung
 	 * von Alpha erreicht wird. Wichtig zu beachten ist, das die Eigenwerden wie folgt in der Matrix
 	 * angeordnet sind:
 	 * 
@@ -60,7 +70,7 @@ public class PCAnalyser{
 	 * 
 	 */
 
-	private void Numb_PC(double Alpha) {
+	private void calc_numberPC() {
 		int length_Lat = Eig.getD().getRowDimension();
 		
 		for (int i = length_Lat-1; i >=0; i--) {
@@ -71,40 +81,9 @@ public class PCAnalyser{
 		}
 			
 	}
-	
-	public int getNbr_PC() {
-		return nbr_pc;
+
+	public void reset(){
+		segmentCounter = 0;
 	}
 
-
-	public double[][] getKovarianceMatrix(){
-		return Cov.getArray();
-	}
-	public double[][] getPrincipalComponent() {
-		// TODO Auto-generated method stub
-		return Eig.getV().getArray();
-	}
-	public double[][] getLatent() {
-		// TODO Auto-generated method stub
-		return Eig.getD().getArray();
-	}
-	public double[][] getReducedPrincipalComponent() {
-		// TODO Auto-generated method stub
-		return CoeffReduced.getArray();
-	}
-	public double[][] getScore() {
-		// TODO Auto-generated method stub
-		return Score.getArray();
-	}
-	public double[][] getReducedX_double() {
-		// TODO Auto-generated method stub
-		return X_Reduced.getArray();
-	}
-	public Matrix getReducedX() {
-		// TODO Auto-generated method stub
-		return X_Reduced;
-	}
-	
-
-	
 }

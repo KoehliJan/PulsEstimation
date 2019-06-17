@@ -1,8 +1,11 @@
 package bfh.pulsestimation;
 
+import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.Log;
+import android.view.Display;
+import android.view.WindowManager;
 import android.widget.LinearLayout;
 
 import org.achartengine.ChartFactory;
@@ -21,7 +24,7 @@ public class SimpleLineChart {
     protected GraphicalView mChartView;
 
 
-    private XYMultipleSeriesRenderer renderer;
+    XYMultipleSeriesRenderer renderer;
 
     protected XYMultipleSeriesDataset mDataset;
     private String title;
@@ -37,20 +40,26 @@ public class SimpleLineChart {
     String[] types;
 
 
-    SimpleLineChart(MainActivity a, String[] chartTypes, String t,  int layout_id){
+    SimpleLineChart(MainActivity a, ChannelProperties chProps, String t,  int layout_id){
+
 
         activity = a;
-        title = t;
-        n_series = chartTypes.length;
-        types = chartTypes;
 
-        initSeriesProperties();
+        title = t;
+
+        n_series = chProps.getNSeries();
+        types = chProps.getChartTypes();
+        ch_styles = chProps.getPointSytyles();
+        ch_colors = chProps.getColors();
+        ch_titles = chProps.getTitles();
+
+
         buildRenderer();
         setChartSettings();
         setRanges(0,5,0,2);
         initDataSet();
         setupChart(layout_id);
-        plot();
+
 
     }
 
@@ -88,25 +97,6 @@ public class SimpleLineChart {
     }
 
 
-
-    private void initSeriesProperties(){
-
-        ch_colors = new int[n_series];
-        ch_titles = new String[n_series];
-        ch_styles = new PointStyle[n_series];
-
-
-        for(int i =0; i < ch_colors.length; i++){
-            ch_titles[i] = "Channel ";
-            ch_colors[i] = getColor(i);
-            ch_styles[i] = PointStyle.POINT;
-
-        }
-
-        ch_styles[1] = PointStyle.CIRCLE;
-
-    }
-
     private void buildRenderer(){
 
         renderer = new XYMultipleSeriesRenderer();
@@ -114,9 +104,10 @@ public class SimpleLineChart {
         /* Set View related Params*/
         renderer.setChartTitleTextSize(30);
         renderer.setLabelsTextSize(30);
-        renderer.setLegendTextSize(25);
-        renderer.setAxisTitleTextSize(40);
+        renderer.setLegendTextSize(30);
+        renderer.setAxisTitleTextSize(30);
         renderer.setPointSize(2 * 5f);
+        renderer.setShowCustomTextGrid(true);
 
 
         for (int i = 0; i < n_series; i++) {
@@ -135,19 +126,21 @@ public class SimpleLineChart {
         renderer.setXTitle("");
         renderer.setYTitle("");
 
-
         renderer.setAxesColor(Color.WHITE);
         renderer.setLabelsColor(Color.WHITE);
 
         renderer.setYLabelsAlign(Paint.Align.RIGHT);
 
-        int[] margins = {60,100,20,20};
+        int[] margins = {25,120, 50 ,20};
         renderer.setMargins(margins);
         renderer.setMarginsColor(Color.BLACK);
 
         renderer.setBackgroundColor(Color.BLACK);
 
-        renderer.setShowGrid(true);
+
+        renderer.setShowGridX(true);
+        renderer.setShowGridY(true);
+
         renderer.setShowLegend(false);
         renderer.setXLabelsColor(Color.WHITE);
         renderer.setYLabelsColor(0, Color.WHITE);
@@ -172,7 +165,8 @@ public class SimpleLineChart {
             public void run() {
 
                 double yPadding = 0.1 *( mDataset.getSeriesAt(ch_number).getMaxY() - mDataset.getSeriesAt(ch_number).getMinY());
-                if(yPadding < 0.01)yPadding = 0.01;
+                if(yPadding < 0.01) yPadding = 0.01;
+
                 /* Set Y Range*/
                 renderer.setYAxisMax(mDataset.getSeriesAt(ch_number).getMaxY() + yPadding);
                 renderer.setYAxisMin(mDataset.getSeriesAt(ch_number).getMinY() - yPadding);
@@ -181,13 +175,15 @@ public class SimpleLineChart {
                 double minX = mDataset.getSeriesAt(ch_number).getMinX();
                 renderer.setXAxisMin(minX);
                 renderer.setXAxisMax(minX + sizeX);
+
+                //Log.v("Simple Line Chart","Auto range, rendererYMax: " + renderer.getYAxisMax() + "dataset Y Max: "+mDataset.getSeriesAt(ch_number).getMaxY());
             }
         });
     }
 
-    protected void fixXaxis(){
-        renderer.setPanEnabled(false,true);
-        renderer.setZoomEnabled(false,true);
+    protected void disableInteractivity(){
+        renderer.setPanEnabled(false,false);
+        renderer.setZoomEnabled(false,false);
     }
 
     private void initDataSet(){
@@ -215,11 +211,12 @@ public class SimpleLineChart {
                 mChartView = ChartFactory.getCombinedXYChartView(activity,mDataset,renderer,types);
                 mChartView.setBackgroundColor(Color.BLACK);
 
+
                 chartLayout = (LinearLayout) activity.findViewById(layout_id);
                 chartLayout.removeAllViews();
 
                 LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                        LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
 
                 chartLayout.addView(mChartView, layoutParams);
 

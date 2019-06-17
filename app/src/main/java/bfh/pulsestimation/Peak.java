@@ -7,6 +7,8 @@ public class Peak {
 
 	private double sampleNr;
 	private double timeStamp;
+
+	private double heartRate;
 	
 	public Peak(double amp, double interval, double t, int n) {
 
@@ -14,6 +16,8 @@ public class Peak {
 		RR_Interval = interval;
 		timeStamp = t;
 		sampleNr = n;
+
+		heartRate = rr_to_heartrate(interval);
 
 	}
 
@@ -48,5 +52,22 @@ public class Peak {
 
 	public void setRR_Interval(double RR_Interval) {
 		this.RR_Interval = RR_Interval;
+		this.heartRate = rr_to_heartrate(RR_Interval);
 	}
+
+	public double getHeartRate(){
+		return heartRate;
+	}
+
+
+	private static double rr_to_heartrate(double rrInterval){
+		/* Returns the heartrate in bpm*/
+		if (rrInterval != 0){
+			return 60 / rrInterval;
+		}else{
+			return 0;
+		}
+	}
+
+
 }

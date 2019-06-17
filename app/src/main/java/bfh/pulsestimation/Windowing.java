@@ -2,11 +2,9 @@ package bfh.pulsestimation;
 
 import android.util.Log;
 
-import Jama.Matrix;
-
 public class Windowing {
 
-	private Jama.Matrix HammCoef;
+	private Jama.Matrix BartCoef;
 	private Jama.Matrix X_old;
 	private Jama.Matrix X_Window;
 
@@ -28,11 +26,15 @@ public class Windowing {
 			col[i] = i;
 		}
 
-		/* Set Hamming Coeff */
-		HammCoef = new Jama.Matrix(2*length_sig,number_sig);
+		/* Set Bartlett Coeff */
+		BartCoef = new Jama.Matrix(2*length_sig,number_sig);
 		for (int j = 0; j < number_sig; j++){
 			for ( int i = 0; i <= (length_sig*2)-1; i ++ ) {
-				HammCoef.set(i, j, (0.54-(0.46*Math.cos((2*(Math.PI)*i/(length_sig*2))))));
+
+				BartCoef.set(i, j, (2/((double) length_sig*2-1)*(((double) length_sig*2-1)/2-Math.abs(i-((double) length_sig*2-1)/2))));
+				Log.v("Window","Result: "+ (  (2/((double) length_sig*2-1)*(((double) length_sig*2-1)/2-Math.abs(i-((double) length_sig*2-1)/2)))    ));
+				//BartCoef.set(i, j, (0.54-(0.46*Math.cos((2*(Math.PI)*i/(length_sig*2))))));
+
 			}
 		}
 	}
@@ -45,7 +47,7 @@ public class Windowing {
 
 			X_Window.setMatrix(0, X.getRowDimension()-1, col, X_old);
 			X_Window.setMatrix(X.getRowDimension(),2*X.getRowDimension()-1, col, X);
-			X_Window = X_Window.arrayTimes(HammCoef);
+			X_Window = X_Window.arrayTimes(BartCoef);
 			X_old = X.copy();
 
 			return X_Window;
@@ -54,6 +56,10 @@ public class Windowing {
 			return X_Window.times(0);
 		}
 
+	}
+
+	public void reset(){
+		X_old = X_old.times(0);
 	}
 
 }

@@ -6,7 +6,7 @@ import java.util.ArrayList;
 
 import Jama.Matrix;
 
-public class RRDetecter {
+public class RRProcessing {
 
 	ArrayList<Peak> Peak_Element;
 	
@@ -16,17 +16,16 @@ public class RRDetecter {
 	double RRi;
 	
 	int Numb_RR_Interval;
+	int Numb_valid;
 	int Numb_Seg;
 	int x_row;
+
+
 	
-	public RRDetecter(int x_row_dimension) {
+	public RRProcessing(int x_row_dimension) {
 		
 		x_row = x_row_dimension;
-		Numb_RR_Interval=4;
-		Numb_Seg = 0;
-		
-		Peak_Element = new ArrayList<>();
-		Peak_Element.add(new Peak(0,0,0,0));
+		reset();
 	}
 	
 	public void process(Matrix R_Peaks_New,int Numb_New_R_Peaks) {
@@ -40,24 +39,28 @@ public class RRDetecter {
 
 			int sampleNumber = (int) R_Peaks_New.get(i, 1) + (int) (x_row*Numb_Seg);
 
-			Log.v("RR detector","sampleNumber: "+ sampleNumber +" ");
-
 			Peak_Element.add(new Peak(amp, rrInterval, timestamp, sampleNumber));
 		}
 		
 		// Jeder Peak �berpr�fen
 		for( int i=Numb_RR_Interval ; i<= Peak_Element.size()-1 ; i++) {
+
 			RRi = Peak_Element.get(i).getRR_Interval();					// Aktueller Peak
+
 			if(Peak_Element.size()>=5) {
+
 				RR_Ref = (0.2*Peak_Element.get(i-3).getRR_Interval()) + (0.3*Peak_Element.get(i-2).getRR_Interval()) + (0.5*Peak_Element.get(i-1).getRR_Interval());
 				RR_Sum = RRi;
 				RR_Sum2 = RRi+Peak_Element.get(i-1).getRR_Interval();
 
-				
-				if( RRi < (0.7*RR_Ref) || RRi < 0.2) {					// Ist das RR-Intervall zu klein?
-					for(int k=i+1 ; k<Peak_Element.size()-2 ; k++) {	
+				/* Interval is to small */
+				if( RRi < (0.7*RR_Ref) || RRi < 0.2) {
+					for(int k=i+1 ; k<Peak_Element.size()-2 ; k++) {
+
 						if( RRi < (0.7*RR_Ref) || RRi < 0.2) {
-							RR_Sum = RR_Sum + Peak_Element.get(k).getRR_Interval();		// Aufsummieren der Peaks bis passendes Intervall gefunden wird
+
+							/* Summation of RR intervals*/
+							RR_Sum = RR_Sum + Peak_Element.get(k).getRR_Interval();
 						}else {
 							if( Math.abs(RR_Sum - RR_Ref) < (0.3*RR_Ref)) {				
 								double RR_new;
@@ -77,7 +80,9 @@ public class RRDetecter {
 								for (int l=i ; l<k ; l++) {								// entfernen der zukleinen peaks
 									Peak_Element.remove(l);
 								}
+
 								Numb_RR_Interval++;
+								Numb_valid++;
 								break;
 							}else {
 								if( Math.abs( RR_Sum2 - RR_Ref) < (0.3 * RR_Ref)) {		
@@ -86,6 +91,7 @@ public class RRDetecter {
 										Peak_Element.remove(l);							// entfernen der zukleinen peaks
 									}
 									Numb_RR_Interval++;
+									Numb_valid++;
 									break;
 								}else {	// kein passendes Interval wurde berechnet
 									// Check manually
@@ -104,10 +110,13 @@ public class RRDetecter {
 				else {
 					// RR is fine
 					Numb_RR_Interval++;
+					Numb_valid++;
 				}
 			}else {
 				break;
 			}
+
+
 		}
 		Numb_Seg++;
 	}
@@ -120,6 +129,39 @@ public class RRDetecter {
 		}
 
 		return samples;
+	}
+
+	public XYSample[] getHeartRate(){
+
+		if (Numb_valid > 0){
+
+			XYSample[] samples = new XYSample[Numb_valid];
+
+			for (int i = 0; i < samples.length; i++){
+				samples[i] = new XYSample(Peak_Element.get(i).getSampleNr(), Peak_Element.get(i).getHeartRate());
+			}
+			return samples;
+
+		}else{
+
+			return new XYSample[0];
+		}
+
+
+
+
+
+	}
+
+	public void reset(){
+
+		Numb_RR_Interval = 4;
+		Numb_valid = -1;
+		Numb_Seg = 0;
+
+		Peak_Element = new ArrayList<>();
+		Peak_Element.add(new Peak(0,0,0,0));
+
 	}
 
 }

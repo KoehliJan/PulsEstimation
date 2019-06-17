@@ -1,8 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
+
+    /* Theme Colors */
+    <color name="colorPrimaryx">#3F51B5</color>
+    <color name="colorPrimary">#313131</color>
+    <color name="colorPrimaryDarkx">#303F9F</color>
+    <color name="colorPrimaryDark">#171717</color>
     <color name="colorAccent">#FF4081</color>
+
+    <color name="ColorOn">#25d61b</color>
+
+    /* Button Colors */
+
+    <color name="BtnStartGradientColor">#777777</color>
+    <color name="BtnEndGradientColor">#00777777</color>
+
+    /* Often used */
     <color name="black">#000000</color>
-    <color name="white">#ffffff</color>
+    <color name="white">#FFFFFF</color>
+
+    /* Lead Colors */
+    <color name="ch1color">#00ffff</color>
+    <color name="ch2color">#ffff00</color>
+    <color name="ch3color">#00ff00</color>
+
+
+
 </resources>

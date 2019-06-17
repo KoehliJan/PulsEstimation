@@ -3,64 +3,64 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_main"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
     android:background="@color/black"
+    android:orientation="vertical"
+    android:paddingStart="20dp"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingEnd="20dp"
+    android:paddingBottom="@dimen/activity_vertical_margin"
     tools:context="bfh.pulsestimation.MainActivity">
 
     <LinearLayout
-        android:id="@+id/linearlayout_connection"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="end"
         android:orientation="horizontal">
 
-        <FrameLayout
-            android:id="@+id/framelayout_status"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent">
-
-            <ProgressBar
-                android:id="@+id/progressbar_waiting"
-                style="?android:attr/progressBarStyleLarge"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:visibility="gone" />
-        </FrameLayout>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="end"
-            android:orientation="horizontal">
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="40dp"
+            android:layout_weight="1"
+            android:gravity="center_horizontal"
+            android:text="Electrocardiogram "
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
-            <Switch
-                android:id="@+id/switchConnection"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Sensor Connection"
-                android:textColor="@color/white"
-                android:textIsSelectable="false" />
-
-        </LinearLayout>
-
+        <TextView
+            android:id="@+id/textView3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="40dp"
+            android:layout_marginEnd="20dp"
+            android:layout_weight="1"
+            android:gravity="center_horizontal"
+            android:text="Heart rate"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            android:textStyle="bold" />
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="horizontal">
+        android:layout_margin="0dp"
+        android:orientation="horizontal"
+        android:padding="0dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:paddingStart="20dp"
+            android:paddingTop="5dp"
+            android:paddingEnd="40dp"
+            android:paddingBottom="5dp">
 
             <LinearLayout
                 android:id="@+id/layout_ecg_ch1_plot"
@@ -68,12 +68,14 @@
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:orientation="vertical"></LinearLayout>
+
             <LinearLayout
                 android:id="@+id/layout_ecg_ch2_plot"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:orientation="vertical"></LinearLayout>
+
             <LinearLayout
                 android:id="@+id/layout_ecg_ch3_plot"
                 android:layout_width="match_parent"
@@ -87,20 +89,16 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/textView_heartrate"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Heart Rate:" />
+            android:orientation="vertical"
+            android:paddingStart="40dp"
+            android:paddingTop="5dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="5dp">
 
             <LinearLayout
                 android:id="@+id/layout_heartrateplot"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
+                android:layout_height="match_parent"
                 android:orientation="vertical">
 
             </LinearLayout>

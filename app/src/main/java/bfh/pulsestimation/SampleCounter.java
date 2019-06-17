@@ -1,5 +1,7 @@
 package bfh.pulsestimation;
 
+import android.util.Log;
+
 import org.achartengine.model.XYSeries;
 
 public class SampleCounter {
@@ -14,7 +16,7 @@ public class SampleCounter {
         count = 0;
     }
 
-    public Segment stampSegment(Jama.Matrix X, int ch_number){
+    public Segment stampSegment(Jama.Matrix X){
 
         int length = X.getRowDimension();
 
@@ -25,6 +27,9 @@ public class SampleCounter {
         }
 
         count = count + length;
+
+        Log.v("Sample Counter","count: "+count);
+
 
         return new Segment(X,c);
 
