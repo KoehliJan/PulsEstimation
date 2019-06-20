@@ -7,7 +7,7 @@ import org.achartengine.model.XYSeries;
 import java.util.ArrayList;
 
 
-public class RealtimeDataChart extends SimpleLineChart {
+public class RealtimeDataChart extends MultiSerieChart {
 
     private int xLabelsDist = 256 / 2;
     private int length_plot;

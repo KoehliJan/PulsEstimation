@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.view.View.OnClickListener;
+import android.widget.CompoundButton;
 import android.widget.ProgressBar;
 import android.widget.Switch;
 import android.widget.Toast;
@@ -62,14 +63,14 @@ public class DataScan {
 
     private ArrayAdapter<DaqDeviceDescriptor> mDaqDevInventoryAdapter;
 
-    Algorithmus algorithmus;
+    EcgProcessing ecgProcessing;
 
 
-    DataScan(MainActivity a,  Algorithmus algo, int l_segment, double fa){
+    DataScan(MainActivity a, EcgProcessing algo, int l_segment, double fa){
 
         /* Main activity reference */
         activity = a;
-        algorithmus = algo;
+        ecgProcessing = algo;
 
         /* Set parameters */
         segmentSize = l_segment;
@@ -84,17 +85,21 @@ public class DataScan {
     public void setInteraction(Switch sConnect, ProgressBar pBW){
 
         this.sConnection = sConnect;
-        sConnection.setOnClickListener(new OnClickListener() {
+        sConnection.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
-            public void onClick(View v) {
-                if (sConnection.isChecked()){
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                Log.v("Switch", "On checked changed");
+                if (b){
                     connect();
                 }else{
+                    stopAInScan();
                     disconnectDaqDevice();
                 }
-
+                statusViewer.setStatusAvaiable();
             }
         });
+
+
 
         statusViewer = new StatusViewer(pBW);
     }
@@ -105,6 +110,15 @@ public class DataScan {
 
         detectDaqDevices();
 
+    }
+
+    private void switchOffConnection(){
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                sConnection.setChecked(false);
+            }
+        });
     }
 
 
@@ -137,14 +151,15 @@ public class DataScan {
                         @Override
                         public void onCancel(DialogInterface dialog) {
                             Log.v(LOGTAG,"Dialog canceled");
-                            statusViewer.setStatus(false);
+                            switchOffConnection();
+
                         }
                     })
                     .setNegativeButton("cancel", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             Log.v(LOGTAG,"Dialog canceled");
-                            statusViewer.setStatus(false);
+                            switchOffConnection();
                         }
                     })
                     .setItems(DevNames, new DialogInterface.OnClickListener() {
@@ -171,7 +186,7 @@ public class DataScan {
         }else {
             /* No devices detected */
             statusViewer.message("No Devices detected");
-            statusViewer.setStatus(mDaqDevice.isConnected());
+            switchOffConnection();
         }
     }
 
@@ -190,7 +205,7 @@ public class DataScan {
             int NumChannels = aiInfo.getTotalNumChans();
             if (NumChannels < 3) {
                 statusViewer.message("3 channels recommended. Selected device has only "+NumChannels+" analog input Channels. ");
-                statusViewer.setStatus(mDaqDevice.isConnected());
+                switchOffConnection();
             }else {
 
                 /* Check if this device has connection permission */
@@ -210,7 +225,7 @@ public class DataScan {
             }
         }else {
             statusViewer.message("Selected device does not support analog input.");
-            statusViewer.setStatus(mDaqDevice.isConnected());
+            switchOffConnection();
         }
     }
 
@@ -229,18 +244,22 @@ public class DataScan {
                         } catch (Exception e) {
                             Log.v(LOGTAG,"Unable to connect to " + mDaqDevice + ". " + e.getMessage());
                             statusViewer.message("Unable to connect to " + mDaqDevice + ". " + e.getMessage());
+                            switchOffConnection();
+
                         }
-                        statusViewer.setStatus(mDaqDevice.isConnected());
 
                         if(mDaqDevice.isConnected()){
 
 
                             /* Connection successful, prepare and start scan */
                             prepareScan();
-                            startScan();
+                            activity.reset();
+                            //startScan();
 
                             /* Start Updating Ecg Plot */
                             activity.getEcgPlotter().run();
+                        }else{
+                            switchOffConnection();
                         }
                     }
                 }).start();
@@ -249,7 +268,7 @@ public class DataScan {
             else {
                 Log.v(LOGTAG,"Permission denied to connect to " + mDaqDevice);
                 statusViewer.message("Permission denied to connect to " + mDaqDevice);
-                statusViewer.setStatus(mDaqDevice.isConnected());
+                switchOffConnection();
             }
 
         }
@@ -303,20 +322,23 @@ public class DataScan {
                 /* Start collecting data */
                 double actualScanRate = mAiDevice.aInScan(0, 2, mode, range, scanBufferSize, rate, options, mUnit, mScanData);
                 Log.v(LOGTAG," Start Scan with Scan rate: "+ actualScanRate);
+                statusViewer.setStatusAvaiable();
 
             } catch (final ULException e) {
                 statusViewer.message("Could not start Scan");
                 Log.e(LOGTAG,"Could not start Scan: " + e.toString());
                 mDaqDevice.disconnect();
-                statusViewer.setStatus(mDaqDevice.isConnected());
+                switchOffConnection();
                 statusViewer.message("Error: "+ e.toString());
             }
 
 
+        }else{
+            switchOffConnection();
         }
     }
 
-    void stopAInScan() {
+    private void stopAInScan() {
         try {
             if(mAiDevice != null)
                 /* Stop collecting data */
@@ -332,7 +354,6 @@ public class DataScan {
 
         /* Disconnect from device */
         mDaqDevice.disconnect();
-        statusViewer.setStatus(mDaqDevice.isConnected());
 
         /* Stop updating plot */
         activity.getEcgPlotter().stop();
@@ -362,11 +383,13 @@ public class DataScan {
                     /* If enough samples collected */
                     if (currentSampleCount > neededSampleCount){
 
+                        Log.v("Datascan", "Additional Samples" + (currentSampleCount - neededSampleCount));
+
                         /* Read from scan buffer and copy into slice buffer */
                         setSliceData();
 
                         /* Start the signal processing */
-                        algorithmus.processOnAlgoThread(mSliceData);
+                        ecgProcessing.processOnAlgoThread(mSliceData);
                     }
 
                     break;
@@ -377,19 +400,17 @@ public class DataScan {
                     /* Shouldn't be fired in continuous mode*/
 
                     /* Stop scan and disconnect device. */
-                    stopAInScan();
-                    disconnectDaqDevice();
+                    switchOffConnection();
 
 
                     break;
                 case ON_INPUT_SCAN_ERROR:
 
                     /* Log the error */
-                    Log.e(LOGTAG, daqDevice.toString() +": "+ errorInfo.toString());
+                    String error = daqDevice.toString() +": "+ errorInfo.toString();
+                    Log.e(LOGTAG, error);
+                    statusViewer.message(error);
 
-                    /* Stop and disconnect device */
-                    stopAInScan();
-                    disconnectDaqDevice();
 
                     break;
                 default:
@@ -428,13 +449,13 @@ public class DataScan {
             pbWaiting = pbW;
         }
 
-        public void setStatus(final boolean connected){
+        public void setStatusAvaiable(){
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     pbWaiting.setVisibility(View.GONE);
                     sConnection.setEnabled(true);
-                    sConnection.setChecked(connected);
+                    //sConnection.setChecked(connected);
                 }
             });
 

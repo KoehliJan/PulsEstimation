@@ -32,7 +32,7 @@ public class ChannelNormalizer {
 
                 /* Calculate factors in the first segment */
                 if(isFirstSegment){
-                    normalizingFactor[channel] = 1/max(X,channel)[0][0];
+                    normalizingFactor[channel] = 1/max(X,channel)[0][0];//1/mean(X.transpose().getArray()[channel]);
                     Log.v("Channel Normalizer","f: " + normalizingFactor[channel]);
                 }
 
@@ -60,5 +60,16 @@ public class ChannelNormalizer {
             }
         }
         return Max;
+    }
+
+    // Funktion zum berechnen des Mittelwertes
+    private double mean(double[] x) {
+
+        Log.v("Channel Normalizer",""+x.length);
+        double mean=0;
+        for(int i=0 ; i<x.length ; i++) {
+            mean = mean + x[i];
+        }
+        return mean/x.length;
     }
 }

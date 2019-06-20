@@ -19,11 +19,17 @@
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
 
+    <color name="backgroundColor">#FFFFFF</color>
+    <color name="textColor">#000000</color>
+
     /* Lead Colors */
+    <!--
     <color name="ch1color">#00ffff</color>
     <color name="ch2color">#ffff00</color>
     <color name="ch3color">#00ff00</color>
-
-
+    -->
+    <color name="ch1color">#700000</color>
+    <color name="ch2color">#707000</color>
+    <color name="ch3color">#002b70</color>
 
 </resources>

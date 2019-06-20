@@ -61,12 +61,14 @@ public class Peak {
 
 
 	private static double rr_to_heartrate(double rrInterval){
+
 		/* Returns the heartrate in bpm*/
 		if (rrInterval != 0){
 			return 60 / rrInterval;
 		}else{
 			return 0;
 		}
+
 	}
 
 

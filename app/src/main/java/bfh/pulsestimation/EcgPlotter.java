@@ -1,19 +1,13 @@
 package bfh.pulsestimation;
 
-import android.app.Activity;
-import android.graphics.Color;
 import android.util.Log;
 
 import org.achartengine.chart.LineChart;
 import org.achartengine.chart.PointStyle;
 import org.achartengine.chart.ScatterChart;
-import org.achartengine.model.XYSeries;
 
 import java.util.Timer;
 import java.util.TimerTask;
-
-import bfh.pulsestimation.R;
-import bfh.pulsestimation.RealtimeDataChart;
 
 public class EcgPlotter {
 
@@ -44,8 +38,8 @@ public class EcgPlotter {
         chProps.setChartType(ScatterChart.TYPE,1);  // Scatter Chart for Peaks
 
             // Point Styles
-        chProps.setPointSytyle(PointStyle.POINT, 0);    // Points for Ecg
-        chProps.setPointSytyle(PointStyle.CIRCLE, 1);   // Circles for Peaks
+        chProps.setPointStyle(PointStyle.POINT, 0);    // Points for Ecg
+        chProps.setPointStyle(PointStyle.CIRCLE, 1);   // Circles for Peaks
 
             // Set theme related color for peaks.
         chProps.setColor(activity.getColor(R.color.colorAccent), 1);
@@ -106,6 +100,22 @@ public class EcgPlotter {
     }
 
 
+    private void updatePlots(int csc){
+        // Adjust the xRange of the axes to the data delivered
+        ecgChannel_1_Chart.syncSerieMaster(0, csc);
+        ecgChannel_2_Chart.syncSerieMaster(0, csc);
+        ecgChannel_3_Chart.syncSerieMaster(0, csc);
+
+        // Adding Samples within the xRange of the axes.
+        ecgChannel_1_Chart.syncSerieSlave(1,0);
+        ecgChannel_2_Chart.syncSerieSlave(1,0);
+        ecgChannel_3_Chart.syncSerieSlave(1,0);
+
+        // Reprint the plots
+        ecgChannel_1_Chart.plot();
+        ecgChannel_2_Chart.plot();
+        ecgChannel_3_Chart.plot();
+    }
 
     public void run(){
         /* Be sure scan is stopped */
@@ -125,21 +135,8 @@ public class EcgPlotter {
                         synchronized (activity.getEcgPlotter()){
 
                             /* Update Plots */
+                            updatePlots(csc);
 
-                                // Adjust the xRange of the axes to the data delivered
-                            ecgChannel_1_Chart.syncSerieMaster(0, csc);
-                            ecgChannel_2_Chart.syncSerieMaster(0, csc);
-                            ecgChannel_3_Chart.syncSerieMaster(0, csc);
-
-                                // Adding Samples within the xRange of the axes.
-                            ecgChannel_1_Chart.syncSerieSlave(1,0);
-                            ecgChannel_2_Chart.syncSerieSlave(1,0);
-                            ecgChannel_3_Chart.syncSerieSlave(1,0);
-
-                                // Reprint the plots
-                            ecgChannel_1_Chart.plot();
-                            ecgChannel_2_Chart.plot();
-                            ecgChannel_3_Chart.plot();
 
                         }
                     }

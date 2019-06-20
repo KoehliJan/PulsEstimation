@@ -7,7 +7,7 @@ public class ChannelProperties {
     private int nSeries = 0;
 
     private String[] chartTypes;
-    private PointStyle[] pointSytyles;
+    private PointStyle[] pointStyles;
     private int[] colors;
     private String[] titles;
 
@@ -16,7 +16,7 @@ public class ChannelProperties {
         chartTypes = new String[nS];
         titles = new String[nS];
         colors = new int[nS];
-        pointSytyles = new PointStyle[nS];
+        pointStyles = new PointStyle[nS];
     }
 
     /* Chart Types */
@@ -33,12 +33,17 @@ public class ChannelProperties {
     }
 
     /* Point Styles */
-    public PointStyle[] getPointSytyles() {
-        return pointSytyles;
+    public PointStyle[] getPointStyles() {
+        return pointStyles;
     }
 
-    public void setPointSytyle(PointStyle pointSytyle, int serie) {
-            this.pointSytyles[serie] = pointSytyle;
+    public void setPointStyle(PointStyle pointSytyle, int serie) {
+            this.pointStyles[serie] = pointSytyle;
+    }
+    public void setPointStyles(PointStyle pointStyle) {
+        for (int s = 0; s < nSeries; s++){
+            this.pointStyles[s] = pointStyle;
+        }
     }
 
     /* Colors */

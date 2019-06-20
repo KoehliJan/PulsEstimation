@@ -21,10 +21,8 @@ public class HeartRatePlotter {
             // Set all Chart Types to Scatter
         chProps.setChartTypes(LineChart.TYPE);
 
-            // Set different Point Style for each channel.
-        chProps.setPointSytyle(PointStyle.DIAMOND, 0);
-        chProps.setPointSytyle(PointStyle.SQUARE, 1);
-        chProps.setPointSytyle(PointStyle.TRIANGLE, 2);
+            // Set Point Style for all channels.
+        chProps.setPointStyles(PointStyle.POINT);
 
             // Set different Color for each channel.
         chProps.setColor(activity.getColor(R.color.ch1color), 0);
@@ -32,9 +30,9 @@ public class HeartRatePlotter {
         chProps.setColor(activity.getColor(R.color.ch3color), 2);
 
             // Set titles of the channel. Leading and following spaces for better visual appearance.
-        chProps.setTitle("  Lead 1 ",0);
-        chProps.setTitle("  Lead 2 ",1);
-        chProps.setTitle("  Lead 3 ",2);
+        chProps.setTitle("Lead 1",0);
+        chProps.setTitle("Lead 2",1);
+        chProps.setTitle("Lead 3",2);
 
         heartRateChart = new UpdatingPanChart(a, chProps, "", R.id.layout_heartrateplot, 20 * 256);
 
@@ -67,6 +65,7 @@ public class HeartRatePlotter {
         heartRateChart.updateXaxis();
 
         heartRateChart.plot();
+
     }
 
     public void reset(){

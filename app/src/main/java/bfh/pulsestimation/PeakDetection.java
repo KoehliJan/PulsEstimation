@@ -8,7 +8,7 @@ import Jama.Matrix;
 public class PeakDetection {
 
 	MainActivity activity;
-	Jama_Filter DD;
+	JamaFilter DD;
 	double init;
 	int AnzPeaks;
 	int fa;
@@ -37,16 +37,14 @@ public class PeakDetection {
 		qrs_range_length = (int) (qrs_range_time*fa);			
 		grs_window_length = 2*qrs_range_length+1;			// QRS Fenstergr�sse	
 		
-		DD = new Jama_Filter(loadFilterCoeff(a,R.array.dd_num),l_sig,1);
+		DD = new JamaFilter(loadFilterCoeff(a,R.array.dd_num),l_sig,1);
 		
 		O_Matrix = new Matrix(grs_window_length,1);			
 		OVERLAP_EKG = new Matrix(grs_window_length,1);
 		OVERLAP_DD_SQ = new Matrix(grs_window_length,1);
 		QRS_Peaks_Alt = new Matrix(10,2);
 		R_Peaks_Sort = new Matrix(10,2);
-		
-		
-		
+
 	}
 
 	public void process(Matrix x) {
@@ -85,7 +83,7 @@ public class PeakDetection {
 			// Initialisierung des Treshold. Es werden nur die Werte ab t=0.1 f�r die Berechunung betrachtet
 			// Wir suchen den gr�ssten Wert f�r die erste Berechnung des Treshold
 			if(init==7) {
-				double[][] Max=max(Seg_DD_SQ.getMatrix((int) (0.1*1/fa), Seg_DD_SQ.getRowDimension()-1, 0, 0),0);
+				double[][] Max = max(Seg_DD_SQ.getMatrix((int) (0.1*1 / fa), Seg_DD_SQ.getRowDimension()-1, 0, 0),0);
 				for(int k=0 ; k<5 ; k++) {
 					QRS_Peaks_Tresh[k]=Max[0][0];
 				}
@@ -102,16 +100,18 @@ public class PeakDetection {
 			init=init-(x.getRowDimension()/fa);								// Init-Timer aktualisieren
 		}else {
 			init=-1;
-			double treshold=0.3* mean(QRS_Peaks_Tresh);						// Treshold berechnen
+			double treshold = 0.3* mean(QRS_Peaks_Tresh);						// Treshold berechnen
 			while(search) {
-				double[][] Max=max(Seg_DD_SQ_Proc,0);
-				if((Max[0][0]<treshold)||(i==9)) {							
-					search=false;	
+
+				double[][] Max = max(Seg_DD_SQ_Proc,0);
+
+				if((Max[0][0]<treshold)||( i == 9 )) {
+					search = false;
 					
 				}else {
 					
 					
-					if(Max[0][1]<qrs_range_length) {						// Wurde der Peak im letzten Segment erkannt?
+					if(Max[0][1] < qrs_range_length) {						// Wurde der Peak im letzten Segment erkannt?
 						// Set magnitudes of this QRS Region to 0
 						Seg_DD_SQ_Proc.setMatrix(0, (int) (Max[0][1])+qrs_range_length, 0, Seg_DD_SQ_Proc.getColumnDimension()-1, new Matrix((int) (Max[0][1])+qrs_range_length+1,1) );
 
@@ -177,17 +177,19 @@ public class PeakDetection {
 		}
 		
 	}
+
 	// Funktion zum berechnen des Mittelwertes
-	public double mean(double[] x) {
+	private double mean(double[] x) {
 		double mean=0;
 		for(int i=0 ; i<x.length ; i++) {
 			mean = mean + x[i];
 		}
 		return mean/x.length;
 	}
+
 	// Funktion zum berechnen des absoluten Maximums (Spallte -> Absolute Arrayposition 0-...)
 	// max gibt die Maximale Amplitude Max(0,0) und die Position Max(0,1) zur�ck.
-	public double[][] max (Matrix x,int Spalte){
+	private double[][] max (Matrix x,int Spalte){
 		double[][] Max= {{0,0}};
 
 		for (int i=0 ; i<x.getRowDimension() ; i++) {
@@ -199,7 +201,7 @@ public class PeakDetection {
 		return Max;
 	}
 	// Funktion zum Sortieren der Peaks
-	public Matrix sort(Matrix x,int Spalte,int Numb) {
+	private Matrix sort(Matrix x,int Spalte,int Numb) {
 		// Num = Anzahl Elemente - 1 (Arraypositionen)
 		Matrix x_out=x.copy();
 		for(int i=Numb ; i>=0 ; i--) {

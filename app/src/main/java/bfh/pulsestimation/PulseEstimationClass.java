@@ -8,10 +8,16 @@ import Jama.Matrix;
 
 public class PulseEstimationClass {
 
+    MainActivity activity;
+
     private PeakDetection peakDetection;
     private RRProcessing rrProcessing;
 
+
     PulseEstimationClass(MainActivity a, int l_sig, int fa){
+
+        activity = a;
+
         peakDetection = new PeakDetection(a,l_sig,fa);
         rrProcessing = new RRProcessing(l_sig);
 
@@ -25,6 +31,9 @@ public class PulseEstimationClass {
     public void process(Matrix x){
         peakDetection.process( x);
         rrProcessing.process(peakDetection.getR_Peaks(), peakDetection.getAnzPeaks());
+
+        /* Plot the heart rate */
+        activity.getHeartRatePlotter().update();
 
     }
 

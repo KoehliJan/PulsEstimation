@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
     private EcgPlotter ecgPlotter;
     private HeartRatePlotter heartRatePlotter;
     private DataScan dataScan;
-    private Algorithmus algorithmus;
+    private EcgProcessing ecgProcessing;
     private PulseEstimationClass pulsEstimationCh1;
     private PulseEstimationClass pulsEstimationCh2;
     private PulseEstimationClass pulsEstimationCh3;
@@ -58,9 +58,9 @@ public class MainActivity extends AppCompatActivity {
         /* Create Ecg Plotter */
         ecgPlotter = new EcgPlotter(this);
         /* Create Algorithm Object*/
-        algorithmus = new Algorithmus(this, LENGTH_SEGMENT, N_CHANNELS_3,K_MAX,ALPHA);
+        ecgProcessing = new EcgProcessing(this, LENGTH_SEGMENT, N_CHANNELS_3,K_MAX,ALPHA);
         /* Create Data Scan Object */
-        dataScan = new DataScan(this, algorithmus, LENGTH_SEGMENT,256);
+        dataScan = new DataScan(this, ecgProcessing, LENGTH_SEGMENT,256);
         /* Create pulsestimation for each channel */
         pulsEstimationCh1 = new PulseEstimationClass(this,LENGTH_SEGMENT,256);
         pulsEstimationCh2 = new PulseEstimationClass(this,LENGTH_SEGMENT,256);
@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
     public void reset(){
 
         /* Reset all */
-        algorithmus.reset();
+        ecgProcessing.reset();
         pulsEstimationCh1.reset();
         pulsEstimationCh2.reset();
         pulsEstimationCh3.reset();
@@ -83,8 +83,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /* Getter and Setter for Worker Objects */
-    public Algorithmus getAlgorithmus() {
-        return algorithmus;
+    public EcgProcessing getEcgProcessing() {
+        return ecgProcessing;
     }
 
     public DataScan getDataScan() {

@@ -1,15 +1,12 @@
 package bfh.pulsestimation;
 
 import android.util.Log;
-import android.view.View;
 
-import org.achartengine.chart.PointStyle;
 import org.achartengine.tools.PanListener;
 
-import java.awt.font.NumericShaper;
 import java.text.DecimalFormat;
 
-public class UpdatingPanChart extends SimpleLineChart {
+public class UpdatingPanChart extends MultiSerieChart {
 
     double xLabelsDist = 5 * 256;
     double xLabelCounter = 0;
@@ -34,10 +31,12 @@ public class UpdatingPanChart extends SimpleLineChart {
     }
 
     public  void reset(){
+
         xMax = 0;
         xLabelCounter = 0;
-        setRanges(0,xRange,60,120);
+        setRanges(0,xRange,50,120);
         renderer.clearXTextLabels();
+
     }
 
     public void updateChannelData(final XYSample[] samples, final int channel){

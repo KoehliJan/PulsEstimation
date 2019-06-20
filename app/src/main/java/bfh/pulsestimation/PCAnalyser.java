@@ -30,7 +30,7 @@ public class PCAnalyser{
 			/* Calculate Coeffs */
 			calcKovarianceMatrix(X);
 			Eig = Cov.eig();
-			calc_numberPC();
+			calcNumberPC();
 			dimReduction(nbr_pc);
 		}
 
@@ -57,7 +57,7 @@ public class PCAnalyser{
 	}
 
 
-	/*In calc_numberPC wird die minimale Anzahl Komponente berechnet mit welchen eine Gesamtstreunung
+	/*In calcNumberPC wird die minimale Anzahl Komponente berechnet mit welchen eine Gesamtstreunung
 	 * von Alpha erreicht wird. Wichtig zu beachten ist, das die Eigenwerden wie folgt in der Matrix
 	 * angeordnet sind:
 	 * 
@@ -70,7 +70,7 @@ public class PCAnalyser{
 	 * 
 	 */
 
-	private void calc_numberPC() {
+	private void calcNumberPC() {
 		int length_Lat = Eig.getD().getRowDimension();
 		
 		for (int i = length_Lat-1; i >=0; i--) {

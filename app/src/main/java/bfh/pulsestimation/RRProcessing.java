@@ -1,14 +1,12 @@
 package bfh.pulsestimation;
 
-import android.util.Log;
-
 import java.util.ArrayList;
 
 import Jama.Matrix;
 
 public class RRProcessing {
 
-	ArrayList<Peak> Peak_Element;
+	ArrayList<Peak> Peaks;
 	
 	double RR_Ref;
 	double RR_Sum;
@@ -34,51 +32,54 @@ public class RRProcessing {
 		for(int i=0 ; i<= Numb_New_R_Peaks ; i++) {
 
 			double amp =  R_Peaks_New.get(i, 0);
-			double rrInterval = ((R_Peaks_New.get(i, 1)+(x_row*Numb_Seg))/256) - Peak_Element.get(Peak_Element.size()-1).getTimeStamp();
-			double timestamp = (R_Peaks_New.get(i, 1)+(x_row*Numb_Seg)) / 256;
+			double rrInterval = ( (R_Peaks_New.get(i, 1)+(x_row * Numb_Seg)) /256) - Peaks.get(Peaks.size()-1).getTimeStamp();
+			double timestamp = ( R_Peaks_New.get(i, 1)+(x_row * Numb_Seg)) / 256;
 
 			int sampleNumber = (int) R_Peaks_New.get(i, 1) + (int) (x_row*Numb_Seg);
 
-			Peak_Element.add(new Peak(amp, rrInterval, timestamp, sampleNumber));
+			Peaks.add(new Peak(amp, rrInterval, timestamp, sampleNumber));
 		}
 		
 		// Jeder Peak �berpr�fen
-		for( int i=Numb_RR_Interval ; i<= Peak_Element.size()-1 ; i++) {
+		for(int i = Numb_RR_Interval; i <= Peaks.size()-1 ; i++) {
 
-			RRi = Peak_Element.get(i).getRR_Interval();					// Aktueller Peak
+			RRi = Peaks.get(i).getRR_Interval();					// Aktueller Peak
 
-			if(Peak_Element.size()>=5) {
+			if(Peaks.size() >= 5) {
 
-				RR_Ref = (0.2*Peak_Element.get(i-3).getRR_Interval()) + (0.3*Peak_Element.get(i-2).getRR_Interval()) + (0.5*Peak_Element.get(i-1).getRR_Interval());
+				RR_Ref = (0.2* Peaks.get(i-3).getRR_Interval()) + (0.3* Peaks.get(i-2).getRR_Interval()) + (0.5* Peaks.get(i-1).getRR_Interval());
 				RR_Sum = RRi;
-				RR_Sum2 = RRi+Peak_Element.get(i-1).getRR_Interval();
+				RR_Sum2 = RRi + Peaks.get(i-1).getRR_Interval();
 
 				/* Interval is to small */
 				if( RRi < (0.7*RR_Ref) || RRi < 0.2) {
-					for(int k=i+1 ; k<Peak_Element.size()-2 ; k++) {
+
+					for(int k = i+1; k< Peaks.size()-2 ; k++) {
 
 						if( RRi < (0.7*RR_Ref) || RRi < 0.2) {
 
 							/* Summation of RR intervals*/
-							RR_Sum = RR_Sum + Peak_Element.get(k).getRR_Interval();
+							RR_Sum = RR_Sum + Peaks.get(k).getRR_Interval();
+
 						}else {
-							if( Math.abs(RR_Sum - RR_Ref) < (0.3*RR_Ref)) {				
+							if( Math.abs(RR_Sum - RR_Ref) < (0.3*RR_Ref) ) {
 								double RR_new;
-								if( Math.abs(RR_Sum + Peak_Element.get(k+1).getRR_Interval() - RR_Ref) < Math.abs(RR_Sum - RR_Ref)) {
-									RR_new = RR_Sum + Peak_Element.get(k+1).getRR_Interval();
-									Peak_Element.remove(k);
+
+								if( Math.abs(RR_Sum + Peaks.get(k+1).getRR_Interval() - RR_Ref) < Math.abs(RR_Sum - RR_Ref)) {
+									RR_new = RR_Sum + Peaks.get(k+1).getRR_Interval();
+									Peaks.remove(k);
 								}else {
 									RR_new = RR_Sum;
 								}
 
 								if(Math.abs(RR_new - RR_Ref) < Math.abs(RR_Sum2 - RR_Ref)) {
-									Peak_Element.get(k).setRR_Interval(RR_new);			// speichern des neu berechneten RR-Intervals					
+									Peaks.get(k).setRR_Interval(RR_new);			// speichern des neu berechneten RR-Intervals
 								}else {
-									Peak_Element.get(k).setRR_Interval(RR_Sum2);		// speichern des neu berechneten RR-Intervals		
+									Peaks.get(k).setRR_Interval(RR_Sum2);		// speichern des neu berechneten RR-Intervals
 								}
 								
 								for (int l=i ; l<k ; l++) {								// entfernen der zukleinen peaks
-									Peak_Element.remove(l);
+									Peaks.remove(l);
 								}
 
 								Numb_RR_Interval++;
@@ -86,9 +87,9 @@ public class RRProcessing {
 								break;
 							}else {
 								if( Math.abs( RR_Sum2 - RR_Ref) < (0.3 * RR_Ref)) {		
-									Peak_Element.get(k).setRR_Interval(RR_Sum2);		// speichern des neu berechneten RR-Intervals
+									Peaks.get(k).setRR_Interval(RR_Sum2);		// speichern des neu berechneten RR-Intervals
 									for (int l=i ; l<k ; l++) {
-										Peak_Element.remove(l);							// entfernen der zukleinen peaks
+										Peaks.remove(l);							// entfernen der zukleinen peaks
 									}
 									Numb_RR_Interval++;
 									Numb_valid++;
@@ -97,7 +98,7 @@ public class RRProcessing {
 									// Check manually
 									System.out.print("Check manually \n");
 									
-									Peak_Element.remove(i);
+									Peaks.remove(i);
 									break;
 								}
 							}
@@ -105,7 +106,7 @@ public class RRProcessing {
 					}
 				}
 				else if( RRi > (1.8*RR_Ref)) {		// Ist das RR-Intervall zu gross
-					Peak_Element.remove(i);			
+					Peaks.remove(i);
 				}
 				else {
 					// RR is fine
@@ -122,10 +123,10 @@ public class RRProcessing {
 	}
 	
 	public XYSample[] getPeaks(){
-		XYSample[] samples = new XYSample[Peak_Element.size()];
+		XYSample[] samples = new XYSample[Peaks.size()];
 
 		for (int i = 0; i < samples.length; i++){
-			samples[i] = new XYSample(Peak_Element.get(i).getSampleNr(), Peak_Element.get(i).getAmplitude());
+			samples[i] = new XYSample(Peaks.get(i).getSampleNr(), Peaks.get(i).getAmplitude());
 		}
 
 		return samples;
@@ -138,7 +139,7 @@ public class RRProcessing {
 			XYSample[] samples = new XYSample[Numb_valid];
 
 			for (int i = 0; i < samples.length; i++){
-				samples[i] = new XYSample(Peak_Element.get(i).getSampleNr(), Peak_Element.get(i).getHeartRate());
+				samples[i] = new XYSample(Peaks.get(i).getSampleNr(), Peaks.get(i).getHeartRate());
 			}
 			return samples;
 
@@ -159,8 +160,8 @@ public class RRProcessing {
 		Numb_valid = -1;
 		Numb_Seg = 0;
 
-		Peak_Element = new ArrayList<>();
-		Peak_Element.add(new Peak(0,0,0,0));
+		Peaks = new ArrayList<>();
+		Peaks.add(new Peak(0,0,0,0));
 
 	}
 
