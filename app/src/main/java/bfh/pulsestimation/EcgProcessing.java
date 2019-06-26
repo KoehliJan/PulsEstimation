@@ -166,7 +166,7 @@ public class EcgProcessing {
 
 	public void reset(){
 
-		/* Reset all */
+		/* Reset all  */
 		sampleCounter.reset();
 		channelNormalizer.reset();
 		bartlettWindow.reset();
